@@ -1,0 +1,637 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sachin Tendulkar Tribute</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Enhanced Background */
+        body {
+            background: linear-gradient(to bottom, rgba(30, 64, 175, 0.5), rgba(255, 255, 255, 0.8)), url('images/background.jpg') no-repeat center/cover;
+        }
+
+        /* Background Animation (Ball and Glow) */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .ball {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle, #fff, #ff0000);
+            border-radius: 50%;
+            bottom: 100px;
+            left: 100px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 25px rgba(255, 255, 255, 0.5);
+            animation: ballSoar 5s infinite ease-in-out;
+        }
+
+        @keyframes ballSoar {
+            0% { transform: translate(0, 0); opacity: 1; }
+            50% { transform: translate(70vw, -200px); opacity: 0.8; }
+            100% { transform: translate(90vw, -50px); opacity: 0; }
+        }
+
+        .glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.3) 0%, transparent 70%);
+            animation: glowPulse 4s infinite ease-in-out;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Particles Animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); opacity: 0.8; }
+            50% { opacity: 0.4; }
+            100% { transform: translate(100px, -100px); opacity: 0; }
+        }
+
+        /* Randomize particle positions and delays */
+        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; top: 40%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; top: 60%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 40%; top: 80%; animation-delay: 6s; }
+        .particle:nth-child(5) { left: 50%; top: 30%; animation-delay: 8s; }
+        .particle:nth-child(6) { left: 60%; top: 50%; animation-delay: 10s; }
+        .particle:nth-child(7) { left: 70%; top: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { left: 80%; top: 90%; animation-delay: 14s; }
+        .particle:nth-child(9) { left: 90%; top: 10%; animation-delay: 16s; }
+        .particle:nth-child(10) { left: 15%; top: 25%; animation-delay: 18s; }
+
+        /* Fallback for Animation Failure */
+        .background-fallback {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1e40af, #ffffff);
+            z-index: 0;
+            display: none;
+        }
+
+        @supports not (animation: ballSoar) {
+            .background-container { display: none; }
+            .background-fallback { display: block; }
+        }
+
+        /* Intro Section */
+        .intro-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            gap: 40px;
+        }
+
+        .intro-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            opacity: 0;
+            animation: fadeIn 1.5s forwards;
+            z-index: 1;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .intro-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        .intro-name {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s forwards 0.5s;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .intro-prompt {
+            color: white;
+            font-size: 1.2rem;
+            opacity: 0;
+            animation: fadeIn 1.5s forwards 1s;
+            cursor: pointer;
+            z-index: 10;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .intro-name {
+                font-size: 2rem;
+            }
+            .intro-prompt {
+                font-size: 1rem;
+                margin-top: 15px;
+            }
+            .intro-section {
+                gap: 30px;
+            }
+        }
+
+        /* Timeline Fade-in Animation */
+        .timeline-section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s, transform 1s;
+        }
+
+        .timeline-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Slideshow Styles */
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .slide img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-width: 300px; /* Reduce width */
+            max-height: 300px; /* Reduce height */
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Stats Counter Animation */
+        .counter {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="font-sans relative">
+    <!-- Background Animation -->
+    <div class="background-container">
+        <div class="glow"></div>
+        <div class="ball"></div>
+    </div>
+    <div class="background-fallback"></div>
+    <!-- Particles -->
+    <div class="particles">
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+    </div>
+
+    <!-- Intro Section -->
+    <section class="intro-section" id="intro">
+        <img src="coverpage 2.jpg" alt="Sachin Tendulkar" class="intro-img">
+        <h1 class="intro-name">Sachin Tendulkar</h1>
+        <div class="intro-prompt" onclick="scrollToTimeline()">Click to Continue ↓</div>
+    </section>
+
+    <!-- Timeline Sections -->
+    <section class="max-w-5xl mx-auto p-6 relative z-10">
+        <!-- Early Life -->
+        <div id="early-life" class="timeline-section py-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-4">
+                    <h2 class="text-2xl font-semibold text-blue-600 mb-6">Early Life (1973–1988)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Born on April 24, 1973, in Mumbai, Sachin Ramesh Tendulkar grew up with a passion for cricket. Introduced to the sport by his elder brother Ajit, young Sachin honed his skills at Shivaji Park under coach Ramakant Achrekar. His prodigious talent shone early, scoring a century in a school match at age 14. Known for his discipline and love for the game, Sachin’s formative years laid the foundation for a legendary career, blending raw skill with relentless determination.
+                    </p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="slideshow-container" data-slideshow="early-life">
+                        <div class="slide active">
+                            <img src="early life 1.jpg" alt="Young Sachin Tendulkar">
+                        </div>
+                        <div class="slide">
+                            <img src="early life 2.jpg" alt="Young Sachin in Training">
+                        </div>
+                        <div class="slide">
+                            <img src="early life 3.jpg" alt="Young Sachin">
+                        </div>
+                        <div class="slide">
+                            <img src="early life 4.jpg" alt="Young Sachin">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Early Career -->
+        <div id="early-career" class="timeline-section py-12">
+            <div class="flex flex-col md:flex-row-reverse items-center">
+                <div class="md:w-1/2 p-4">
+                    <h2 class="text-2xl font-semibold text-blue-600 mb-6">Early Career (1989–1993)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Sachin debuted for India in 1989 at age 16 against Pakistan, facing fearsome bowlers like Imran Khan. Despite a bloody nose, he showed grit, scoring his first Test century in 1990 against England. His flair and consistency earned him global attention, with standout performances in Australia (1991–92). By 1993, Sachin was India’s batting prodigy, setting records and thrilling fans with his elegant strokeplay.
+                    </p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="slideshow-container" data-slideshow="early-career">
+                        <div class="slide active">
+                            <img src="early career 1.jpg" alt="Sachin Debut 1989">
+                        </div>
+                        <div class="slide">
+                            <img src="early career 2.jpg" alt="Sachin 1989">
+                        </div>
+                        <div class="slide">
+                            <img src="sachin early career3.jpg" alt="Sachin Early Career">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Life: Marriage and Children -->
+        <div id="personal-life" class="timeline-section py-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-4">
+                    <h2 class="text-2xl font-semibold text-blue-600 mb-6">Personal Life: Marriage and Family (1995–Present)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        On May 25, 1995, Sachin Tendulkar married Anjali Mehta, a pediatrician, in a private ceremony in Mumbai. Their relationship, which began in 1990, blossomed despite Sachin’s demanding cricket schedule. Anjali’s unwavering support was instrumental in his career. The couple has two children: Sara, born October 12, 1997, who is pursuing a career in modeling and fashion, and Arjun, born September 24, 1999, an aspiring cricketer. Sachin’s family remains a cornerstone of his life, balancing his cricketing legacy with personal fulfillment.
+                    </p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="slideshow-container" data-slideshow="personal-life">
+                        <div class="slide active">
+                            <img src="personal life 1.jpg" alt="Sachin and Anjali Wedding">
+                        </div>
+                        <div class="slide">
+                            <img src="personal life 3.jpeg" alt="Sachin and Anjali">
+                        </div>
+                        <div class="slide">
+                            <img src="personal life 2.jpg" alt="Sara and Arjun">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Peak Career -->
+        <div id="peak-career" class="timeline-section py-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-4">
+                    <h2 class="text-2xl font-semibold text-blue-600 mb-6">Peak Career (1994–2003)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        The late 1990s and early 2000s saw Sachin at his zenith, dominating world cricket. His 1998 “Desert Storm” innings in Sharjah stunned Australia, while centuries against top teams became routine. He broke records, including the most ODI runs and centuries. Sachin’s cover drives and lofted shots enthralled fans, earning him the “Master Blaster” moniker and global adulation.
+                    </p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="slideshow-container" data-slideshow="peak-career">
+                        <div class="slide active">
+                            <img src="peak career 1.jpg" alt="Sachin in action">
+                        </div>
+                        <div class="slide">
+                            <img src="peak career 2.jpeg" alt="Sachin First ODI Ton">
+                        </div>
+                        <div class="slide">
+                            <img src="peak career 3.jpeg" alt="Sachin First ODI Ton">
+                        </div>
+                        <div class="slide">
+                            <img src="peak career 4.jpg" alt="Sachin First ODI Ton">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Later Achievements -->
+        <div id="later-achievements" class="timeline-section py-12">
+            <div class="flex flex-col md:flex-row-reverse items-center">
+                <div class="md:w-1/2 p-4">
+                    <h2 class="text-2xl font-semibold text-blue-600 mb-6">Later Achievements (2004–2013)</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Sachin’s later years cemented his legacy. He scored the first ODI double-century in 2010 and was pivotal in India’s 2011 World Cup triumph, a career highlight. Retiring in 2013 after 200 Tests, he left with 34,357 runs and 100 centuries. Honored with the Bharat Ratna in 2014, Sachin’s humility and impact continue to inspire generations.
+                    </p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="slideshow-container" data-slideshow="later-achievements">
+                        <div class="slide active">
+                            <img src="later acheivements 1.jpg" alt="Sachin World Cup 2011">
+                        </div>
+                        <div class="slide">
+                            <img src="later acheivements.jpg" alt="Sachin Double Century">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slideshow of Iconic Moments -->
+    <section class="max-w-5xl mx-auto p-6 relative z-10">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Iconic Moments</h2>
+        <div class="slideshow-container" data-slideshow="iconic-moments">
+            <div class="slide active">
+                <img src="iconic moments 1.jpg" alt="Sachin Tendulkar Iconic Moment 1">
+            </div>
+            <div class="slide">
+                <img src="iconic moments 2.jpg" alt="Sachin Tendulkar Iconic Moment 2">
+            </div>
+            <div class="slide">
+                <img src="iconic moments 3.jpg" alt="Sachin Tendulkar Iconic Moment 3">
+            </div>
+            <div class="slide">
+                <img src="iconic moments 4.jpg" alt="Sachin Tendulkar Iconic Moment 4">
+            </div>
+            <div class="slide">
+                <img src="iconic moments 5.jpg" alt="Sachin Tendulkar Iconic Moment 5">
+            </div>
+            <div class="slide">
+                <img src="iconic moments 6.jpg" alt="Sachin Tendulkar Iconic Moment 6">
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="max-w-5xl mx-auto p-6 relative z-10 text-center">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+                <p class="counter" data-target="34357">0</p>
+                <p class="text-gray-700">International Runs</p>
+            </div>
+            <div>
+                <p class="counter" data-target="100">0</p>
+                <p class="text-gray-700">Centuries</p>
+            </div>
+            <div>
+                <p class="counter" data-target="200">0</p>
+                <p class="text-gray-700">Test Matches</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white text-center py-4 relative z-10">
+        <p>© 2025 Tribute to Sachin Tendulkar. Created with admiration.</p>
+    </footer>
+
+    <script>
+        // Dynamically scale the intro image to fill the screen without cropping
+        function scaleIntroImage() {
+            const introImg = document.querySelector('.intro-img');
+            const section = document.querySelector('.intro-section');
+
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Get image natural dimensions
+            const img = new Image();
+            img.src = introImg.src;
+            img.onload = () => {
+                const imgWidth = img.naturalWidth;
+                const imgHeight = img.naturalHeight;
+
+                // Calculate aspect ratios
+                const viewportRatio = viewportWidth / viewportHeight;
+                const imgRatio = imgWidth / imgHeight;
+
+                // Adjust image size to fill the viewport without cropping
+                if (imgRatio > viewportRatio) {
+                    // Image is wider than viewport: scale to height, let width overflow
+                    introImg.style.height = '100vh';
+                    introImg.style.width = 'auto';
+                } else {
+                    // Image is taller than viewport: scale to width, let height overflow
+                    introImg.style.width = '100vw';
+                    introImg.style.height = 'auto';
+                }
+
+                // Center the image
+                introImg.style.left = '50%';
+                introImg.style.top = '50%';
+                introImg.style.transform = 'translate(-50%, -50%)';
+            };
+        }
+
+        // Run on page load
+        window.addEventListener('load', scaleIntroImage);
+        // Re-run on window resize
+        window.addEventListener('resize', scaleIntroImage);
+
+        // Scroll to Timeline
+        function scrollToTimeline() {
+            document.getElementById('early-life').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Reveal Sections on Scroll
+        const sections = document.querySelectorAll('.timeline-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        sections.forEach(section => observer.observe(section));
+
+        // Stats Counter Animation
+        const counters = document.querySelectorAll('.counter');
+        const speed = 200;
+
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const increment = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(updateCount, 10);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        };
+
+        const statsSection = document.getElementById('stats');
+        let hasAnimated = false;
+        window.addEventListener('scroll', () => {
+            const rect = statsSection.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom >= 0 && !hasAnimated) {
+                animateCounters();
+                hasAnimated = true;
+            }
+        });
+
+        // Slideshow Functionality
+        const slideshows = {};
+
+        function initSlideshow(id) {
+            slideshows[id] = {
+                index: 0,
+                slides: document.querySelectorAll(`.slideshow-container[data-slideshow="${id}"] .slide`),
+                interval: null
+            };
+            showSlide(id, slideshows[id].index);
+        }
+
+        function showSlide(id, index) {
+            const slideshow = slideshows[id];
+            slideshow.index = (index + slideshow.slides.length) % slideshow.slides.length;
+            slideshow.slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === slideshow.index);
+            });
+        }
+
+        function startAutoPlay(id) {
+            const slideshow = slideshows[id];
+            if (!slideshow.interval) {
+                slideshow.interval = setInterval(() => {
+                    showSlide(id, slideshow.index + 1);
+                }, 4000);
+            }
+        }
+
+        function stopAutoPlay(id) {
+            const slideshow = slideshows[id];
+            if (slideshow.interval) {
+                clearInterval(slideshow.interval);
+                slideshow.interval = null;
+            }
+        }
+
+        // Initialize all slideshows and set up IntersectionObserver
+        const slideshowContainers = document.querySelectorAll('.slideshow-container');
+        const slideshowObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('data-slideshow');
+                if (entry.isIntersecting) {
+                    startAutoPlay(id);
+                } else {
+                    stopAutoPlay(id);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        slideshowContainers.forEach(container => {
+            const id = container.getAttribute('data-slideshow');
+            initSlideshow(id);
+            slideshowObserver.observe(container);
+        });
+    </script>
+</body>
+</html>
