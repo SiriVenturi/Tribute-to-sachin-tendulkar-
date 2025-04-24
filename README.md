@@ -1,5 +1,6 @@
 # Tribute-to-sachin-tendulkar-
-To check out the website download the zip and extract the files and then open the "index.html" file in ur browser.
+To check out the website download the zip and extract the files and then open the "index.html" file in your browser.
+
 Sachin Tendulkar Tribute 🌟
 A Heartfelt Tribute to the Master Blaster
 On April 24, 2025, I created this website with immense admiration and love as a tribute to the legendary Sachin Tendulkar on his birthday. Sachin, often called the "God of Cricket," has inspired millions with his unparalleled talent, humility, and dedication to the sport. This project is my way of celebrating his incredible journey and legacy that continues to shine brightly.
