@@ -27,7 +27,7 @@
                 }
 
                 // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); 
                 csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
                 return csv;
             } catch (e) {
@@ -481,7 +481,7 @@
 
     <!-- Footer -->
     <footer class="bg-blue-600 text-white text-center py-4 relative z-10">
-        <p>© 2025 Tribute to Sachin Tendulkar. Created with admiration.</p>
+        <p>© 2025 Tribute to Sachin Tendulkar. Created with admiration by a die hard fan Siri Venturi.</p>
     </footer>
 
     <script>
